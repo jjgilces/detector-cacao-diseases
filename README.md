@@ -12,15 +12,19 @@ The main idea is create a Neural Network capable to clasify an image in one of t
 - [PyTorch](https://pytorch.org/) (An open source deep learning platform) 
 - [Matplotlib](https://matplotlib.org/) (library for creating static, animated, and interactive visualizations)
 
-# Table Of Contents
-- [CNN with PyTorch - Detector of deaseases in cacao](#cnn-with-pytorch---detector-of-deaseases-in-cacao)
-- [Requirements](#requirements)
-- [Table Of Contents](#table-of-contents)
-- [Model](#model)
-- [In Details](#in-details)
-- [Authors](#authors)
+# Interface
+- Detecting healthy cocoa crops
+![healthy](output/1.png)
+
+
+
+- Detecting deaseas
+![healthy](output/2.png)
 
 # Model
+
+
+
 In a nutshell here's how to use this template, so **for example** assume you want to implement ResNet-18 to train mnist, so you should do the following:
 - In `modeling`  folder create a python file named whatever you like, here we named it `example_model.py` . In `modeling/__init__.py` file, you can build a function named `build_model` to call your model
 
