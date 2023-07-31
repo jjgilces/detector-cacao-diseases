@@ -16,62 +16,115 @@ The main idea is create a Neural Network capable to clasify an image in one of t
 - [CNN with PyTorch - Detector of deaseases in cacao](#cnn-with-pytorch---detector-of-deaseases-in-cacao)
 - [Requirements](#requirements)
 - [Table Of Contents](#table-of-contents)
-- [In a Nutshell](#in-a-nutshell)
+- [Model](#model)
 - [In Details](#in-details)
 - [Authors](#authors)
 
-# In a Nutshell   
+# Model
 In a nutshell here's how to use this template, so **for example** assume you want to implement ResNet-18 to train mnist, so you should do the following:
 - In `modeling`  folder create a python file named whatever you like, here we named it `example_model.py` . In `modeling/__init__.py` file, you can build a function named `build_model` to call your model
 
 ```python
-from .example_model import ResNet18
-
-def build_model(cfg):
-    model = ResNet18(cfg.MODEL.NUM_CLASSES)
-    return model
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader
+train_size = 0.8
+val_size = 0.1
+test_size = 0.1
+split_data(black_pod_rot_SRC_DIR,
+           TRAINING_BPR_DIR,
+           VALIDATION_BPR_DIR,
+           TEST_BPR_DIR,
+           split_ratio=(train_size,val_size, test_size))
 ``` 
 
    
 - In `engine`  folder create a model trainer function and inference function. In trainer function, you need to write the logic of the training process, you can use some third-party library to decrease the repeated stuff.
 
 ```python
-# trainer
-def do_train(cfg, model, train_loader, val_loader, optimizer, scheduler, loss_fn):
- """
- implement the logic of epoch:
- -loop on the number of iterations in the config and call the train step
- -add any summaries you want using the summary
- """
-pass
+# transformer
+image_transforms = transforms.Compose([
+    transforms.Resize((width, height)),
+    transforms.ToTensor(),
+])
 
-# inference
-def inference(cfg, model, val_loader):
-"""
-implement the logic of the train step
-- run the tensorflow session
-- return any metrics you need to summarize
- """
-pass
+# upload
+train_dataset = ImageFolder(train_data_dir, transform=image_transforms)
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 ```
 
 - In `tools`  folder, you create the `train.py` .  In this file, you need to get the instances of the following objects "Model",  "DataLoader”, “Optimizer”, and config
 ```python
-# create instance of the model you want
-model = build_model(cfg)
+#Definir el modelo
+class CustomModel(nn.Module):
+    def __init__(self):
+        super(CustomModel, self).__init__()
+        super(CustomModel, self).__init__()
+        self.conv1 = nn.Conv2d(3, 32, kernel_size=3, padding=1)
+        self.bn1 = nn.BatchNorm2d(32)
+        self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
 
-# create your data generator
-train_loader = make_data_loader(cfg, is_train=True)
-val_loader = make_data_loader(cfg, is_train=False)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
+        self.bn2 = nn.BatchNorm2d(64)
+        self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
 
-# create your model optimizer
-optimizer = make_optimizer(cfg, model)
+        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
+        self.bn3 = nn.BatchNorm2d(128)
+        self.pool3 = nn.MaxPool2d(kernel_size=2, stride=2)
+
+
+        self.relu = nn.ReLU()
+
+        # Obtén el tamaño de salida de las capas convolucionales y pooling
+        x = torch.randn(1, 3, height, width)
+        self._to_linear = None
+        self.convs(x)
+
+        self.fc1 = nn.Linear(self._to_linear, 128) 
+        self.dropout1 = nn.Dropout(p=dropout_p) 
+        self.fc2 = nn.Linear(128, 3)
+        self.dropout2 = nn.Dropout(p=dropout_p)
+
+    def convs(self, x):
+        # Pasada a través de las capas convolucionales y pooling
+        x = self.pool1(self.bn1(self.relu(self.conv1(x))))
+        x = self.pool2(self.bn2(self.relu(self.conv2(x))))
+        x = self.pool3(self.bn3(self.relu(self.conv3(x))))
+
+        if self._to_linear is None:
+            self._to_linear = x[0].shape[0]*x[0].shape[1]*x[0].shape[2]
+        return x
+
+    def forward(self, x):
+        x = self.convs(x)
+        x = x.view(-1, self._to_linear)  # aplanar el tensor
+        x = self.relu(self.fc1(x))
+        x = self.dropout1(x)
+        x = self.fc2(x)
+        x = self.dropout2(x)
+        return x
+
+
+# Instanciar el modelo
+model = CustomModel()
 ```
 
 - Pass the all these objects to the function `do_train` , and start your training
 ```python
-# here you train your model
-do_train(cfg, model, train_loader, val_loader, optimizer, None, F.cross_entropy)
+# Entrenamiento del modelo
+num_epochs = 10
+for epoch in range(num_epochs):
+    for images, labels in train_loader:
+        optimizer.zero_grad()
+        outputs = model(images)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+
+    print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item()}")
+
+# Guardar el modelo
+torch.save(model.state_dict(), "model.pth")
 ```
 
 **You will find a template file and a simple example in the model and trainer folder that shows you how to try your first model simply.**
@@ -79,7 +132,7 @@ do_train(cfg, model, train_loader, val_loader, optimizer, None, F.cross_entropy)
 
 # In Details
 ```
-├──  config
+├──  tools
 │    └── helper.py  - Utility for testing, visualizing in the contet of deep learning.
 │
 │
@@ -106,20 +159,6 @@ do_train(cfg, model, train_loader, val_loader, optimizer, None, F.cross_entropy)
 │
 ├── modeling            - this folder contains any model of your project.
 │   └── example_model.py
-│
-│
-├── solver             - this folder contains optimizer of your project.
-│   └── build.py
-│   └── lr_scheduler.py
-│   
-│ 
-├──  tools                - here's the train/test model of your project.
-│    └── train_net.py  - here's an example of train model that is responsible for the whole pipeline.
-│ 
-│ 
-└── utils
-│    ├── logger.py
-│    └── any_other_utils_you_need
 │ 
 │ 
 └── tests					- this foler contains unit test of your project.
