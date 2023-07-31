@@ -14,11 +14,13 @@ The main idea is create a Neural Network capable to clasify an image in one of t
 
 # Interface
 - Detecting healthy cocoa crops
+  
 ![healthy](output/1.png)
 
 
 
 - Detecting deaseas
+  
 ![healthy](output/2.png)
 
 # Model
